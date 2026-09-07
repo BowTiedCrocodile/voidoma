@@ -1,5 +1,8 @@
 # voidoma
 
+Inspired by [Omarchy](https://github.com/omacom/omarchy), adapted for Void Linux
+and the ThinkPad T480.
+
 A Hyprland desktop bundle for Void Linux: Ghostty, Rofi, Waybar, notifications,
 a charcoal/sage theme, laptop controls, touchpad gestures, screen locking,
 screenshots, and clipboard history. Original files use the [MIT license](LICENSE);
