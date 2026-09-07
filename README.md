@@ -1,4 +1,4 @@
-# Void desktop
+# voidoma
 
 A Hyprland desktop bundle for Void Linux: Ghostty, Rofi, Waybar, notifications,
 a charcoal/sage theme, laptop controls, touchpad gestures, screen locking,
