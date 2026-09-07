@@ -10,8 +10,8 @@ import time
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--bundle', action='store_true')
 args = parser.parse_args()
-source = Path(__file__).resolve().parent
-base = source if args.bundle else Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config')) / 'hypr'
+source = Path(__file__).resolve().parents[2]
+base = source / 'config' if args.bundle else Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config')) / 'hypr'
 config = base / 'waybar.json'
 css = base / 'waybar.css'
 data = json.loads(config.read_text())
@@ -29,7 +29,7 @@ if not args.bundle:
     backup.mkdir()
     for name in ('waybar.json', 'waybar.css', 'workspace-status'):
         shutil.copy2(base / name, backup / name)
-    shutil.copy2(source / 'workspace-status', base / 'workspace-status')
+    shutil.copy2(source / 'scripts/workspace-status', base / 'workspace-status')
     print(f'Backup: {backup}')
 config.write_text(json.dumps(data, indent=2) + '\n')
 if '#custom-scratchpad' not in css.read_text():

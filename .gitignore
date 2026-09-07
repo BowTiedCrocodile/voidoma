@@ -15,8 +15,5 @@ backup*/
 /fingerprint/sources/
 /fingerprint/build/
 /fingerprint/firmware/
-# Local shell customization and diagnostic experiments are not part of the release.
-/apply-simple-prompt.py
-/apply-rich-prompt.py
-/prompt.zsh
-/terminal-clean-test.sh
+# Local-only tools are not part of the public release.
+/.local-tools/

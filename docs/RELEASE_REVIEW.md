@@ -29,13 +29,13 @@ are generated. The local working directory is not itself the release artifact.
 
 ## Validation
 
-Passed: 69-file release manifest and personal-data/credential pattern checks;
-PNG metadata inspection; nine desktop/display/installer tests; eighteen fingerprint
+Passed: 70-file release manifest and personal-data/credential pattern checks;
+PNG metadata inspection (wallpaper and README screenshot); eleven desktop/display/installer tests; eighteen fingerprint
 permission/privacy/lifecycle tests; Python/shell syntax; and Hyprland 0.56.2/Rofi
 configuration parsing. Temporary-directory installer checks cover dry-run behavior,
 symlink refusal, overwrite refusal, backups, and preserved fingerprint/idle settings.
 The archive was extracted into a temporary directory, all per-file hashes and
-normalized owner/timestamp fields were checked, and all 27 tests passed from the
+normalized owner/timestamp fields were checked, and all 29 tests passed from the
 extracted source. Fingerprint preparation used locally cached pinned upstream
 checkouts, not copies distributed in the archive. Two builds produced identical
 archive hashes. No fresh-machine installation was performed.
@@ -63,3 +63,11 @@ The audit does not modify the live desktop or authentication installation.
 
 Publication is a separate action. No remote repository, upload, or public commit
 is created by the release tooling.
+
+## Source layout
+
+Configuration, runtime scripts, assets, setup/migration scripts, and supporting
+docs are grouped in dedicated directories. The public manifest and release archive
+use these paths. Runtime installation paths remain unchanged. Additional installer
+tests cover migration source lookup and the root install entry point from another
+working directory.

@@ -9,6 +9,7 @@ import subprocess
 import sys
 
 BASE = Path(__file__).resolve().parent
+CONFIG = BASE if (BASE / 'menu.rasi').exists() else BASE.parent / 'config'
 
 def monitors():
     return json.loads(subprocess.check_output(['hyprctl', '-j', 'monitors', 'all'], text=True, timeout=5))
@@ -63,7 +64,7 @@ def preset(items, mode, external=None):
     return specs
 
 def choose(title, choices, timeout=None):
-    result = subprocess.run(['rofi', '-no-config', '-theme', str(BASE / 'menu.rasi'),
+    result = subprocess.run(['rofi', '-no-config', '-theme', str(CONFIG / 'menu.rasi'),
                              '-dmenu', '-no-custom', '-p', title], input='\n'.join(choices),
                             text=True, capture_output=True, timeout=timeout)
     return result.stdout.strip() if result.returncode == 0 else ''
@@ -116,5 +117,5 @@ if __name__ == '__main__':
     try:
         main()
     except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
-        subprocess.run(['rofi', '-no-config', '-theme', str(BASE / 'menu.rasi'), '-e', str(exc)])
+        subprocess.run(['rofi', '-no-config', '-theme', str(CONFIG / 'menu.rasi'), '-e', str(exc)])
         sys.exit(1)

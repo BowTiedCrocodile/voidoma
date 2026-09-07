@@ -15,7 +15,7 @@ args = parser.parse_args()
 account = pwd.getpwnam(args.user)
 if account.pw_uid == 0:
     parser.error('Choose a normal desktop account.')
-source = Path(__file__).resolve().parent / 'lightdm-session'
+source = Path(__file__).resolve().parents[1] / 'scripts/lightdm-session'
 conf = Path('/etc/lightdm/lightdm.conf')
 dmrc = Path(account.pw_dir) / '.dmrc'
 wrapper = Path('/usr/local/bin/void-lightdm-session')

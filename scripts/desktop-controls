@@ -8,6 +8,7 @@ import subprocess
 import sys
 
 BASE = Path(__file__).resolve().parent
+CONFIG = BASE if (BASE / 'menu.rasi').exists() else BASE.parent / 'config'
 
 def run(*args):
     result = subprocess.run(args, text=True, capture_output=True, timeout=15)
@@ -16,10 +17,10 @@ def run(*args):
     return result.stdout.strip()
 
 def message(text):
-    subprocess.run(['rofi', '-no-config', '-theme', str(BASE / 'menu.rasi'), '-e', text])
+    subprocess.run(['rofi', '-no-config', '-theme', str(CONFIG / 'menu.rasi'), '-e', text])
 
 def choose(title, options):
-    result = subprocess.run(['rofi', '-no-config', '-theme', str(BASE / 'menu.rasi'),
+    result = subprocess.run(['rofi', '-no-config', '-theme', str(CONFIG / 'menu.rasi'),
                              '-dmenu', '-i', '-no-custom', '-p', title],
                             input='\n'.join(options), text=True, capture_output=True)
     return result.stdout.strip() if result.returncode == 0 else ''
@@ -49,7 +50,7 @@ def main():
             'Audio and microphone': ['pavucontrol'],
             'Bluetooth': ['python3', str(BASE / 'desktop-controls'), 'bluetooth'],
             'Keyboard shortcuts': ['bash', str(BASE / 'void-menu'), 'keys'],
-            'Edit desktop config': ['xdg-open', str(BASE / 'hyprland.lua')],
+            'Edit desktop config': ['xdg-open', str(CONFIG / 'hyprland.lua')],
         }
         if choice in commands:
             os.execvp(commands[choice][0], commands[choice])

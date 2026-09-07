@@ -9,8 +9,8 @@ import time
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--bundle', action='store_true')
 args = parser.parse_args()
-source = Path(__file__).resolve().parent
-base = source if args.bundle else Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config')) / 'hypr'
+source = Path(__file__).resolve().parents[2]
+base = source / 'config' if args.bundle else Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config')) / 'hypr'
 config = base / 'hyprland.lua'
 keys = base / 'keys.txt'
 line = 'dofile(base .. "touchpad.lua")'
@@ -20,7 +20,7 @@ if not args.bundle:
     for name in ('hyprland.lua', 'keys.txt', 'touchpad.lua'):
         if (base / name).exists():
             shutil.copy2(base / name, backup / name)
-    shutil.copy2(source / 'touchpad.lua', base / 'touchpad.lua')
+    shutil.copy2(source / 'config/touchpad.lua', base / 'touchpad.lua')
     print(f'Backup: {backup}')
 if line not in config.read_text():
     config.write_text(config.read_text().rstrip() + '\n\n' + line + '\n')

@@ -20,9 +20,15 @@ def main():
     if os.getuid() == 0:
         parser.error('Run as your desktop user, without sudo.')
     root = Path(os.environ.get('XDG_CONFIG_HOME', str(Path.home() / '.config'))).absolute()
-    source = Path(__file__).resolve().parent
-    operations = [(source / name, root / 'hypr' / name) for name in FILES]
-    operations.append((source / 'hyprland-portals.conf', root / 'xdg-desktop-portal/hyprland-portals.conf'))
+    source = Path(__file__).resolve().parents[1]
+    def bundled(name):
+        for directory in ('config', 'scripts', 'assets'):
+            candidate = source / directory / name
+            if candidate.is_file():
+                return candidate
+        parser.error(f'Missing bundled file: {name}')
+    operations = [(bundled(name), root / 'hypr' / name) for name in FILES]
+    operations.append((source / 'config/hyprland-portals.conf', root / 'xdg-desktop-portal/hyprland-portals.conf'))
     for name, example in [('10-wireplumber.conf', '/usr/share/examples/wireplumber/10-wireplumber.conf'),
                           ('20-pipewire-pulse.conf', '/usr/share/examples/pipewire/20-pipewire-pulse.conf')]:
         # Do not launch duplicate children when Void already configures them globally.
@@ -32,7 +38,7 @@ def main():
             operations.append((Path(example), target))
     for src, dst in operations:
         if not src.is_file():
-            parser.error(f'Missing {src}; run install-deps.sh first.')
+            parser.error(f'Missing {src}; run setup/install-deps.sh first.')
         if dst.is_symlink() or any(parent.is_symlink() for parent in dst.parents):
             parser.error(f'Refusing symlink destination: {dst}')
         if dst.exists() and not dst.is_file():

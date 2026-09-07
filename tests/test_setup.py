@@ -17,7 +17,7 @@ class SetupTests(unittest.TestCase):
         self.env = dict(os.environ, XDG_CONFIG_HOME=str(self.config))
 
     def install(self, *args):
-        return subprocess.run([sys.executable, str(ROOT / 'setup.py'), *args],
+        return subprocess.run([sys.executable, str(ROOT / 'setup/setup.py'), *args],
                               env=self.env, capture_output=True, text=True)
 
     def test_fresh_install_and_overwrite_refusal(self):
@@ -49,3 +49,20 @@ class SetupTests(unittest.TestCase):
         (self.config / 'hypr').symlink_to(target, target_is_directory=True)
         self.assertNotEqual(self.install('--backup').returncode, 0)
         self.assertEqual(list(target.iterdir()), [])
+
+    def test_migrations_find_reorganized_source_files(self):
+        self.assertEqual(self.install().returncode, 0)
+        for name in ('apply-touchpad.py', 'apply-scratchpad-indicator.py', 'apply-terminal-binding.py'):
+            result = subprocess.run([sys.executable, str(ROOT / 'setup/migrations' / name)],
+                                    env=self.env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.config / 'hypr/touchpad.lua').read_bytes(),
+                         (ROOT / 'config/touchpad.lua').read_bytes())
+        self.assertEqual((self.config / 'hypr/workspace-status').read_bytes(),
+                         (ROOT / 'scripts/workspace-status').read_bytes())
+
+    def test_root_entry_point_works_from_another_directory(self):
+        result = subprocess.run(['sh', str(ROOT / 'install.sh'), '--dry-run'],
+                                cwd=self.temp.name, env=self.env, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(self.config.exists())

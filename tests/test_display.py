@@ -6,7 +6,7 @@ import subprocess
 import unittest
 from unittest.mock import patch
 
-module = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'display-menu'), run_name='display_test')
+module = runpy.run_path(str(Path(__file__).resolve().parents[1] / 'scripts/display-menu'), run_name='display_test')
 preset = module['preset']
 snapshot = module['snapshot']
 BASE = {'id': 0, 'name': 'eDP-1', 'width': 1920, 'height': 1080,

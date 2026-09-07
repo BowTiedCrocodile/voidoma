@@ -9,7 +9,7 @@ import time
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--bundle', action='store_true')
 args = parser.parse_args()
-base = Path(__file__).resolve().parent if args.bundle else Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config')) / 'hypr'
+base = Path(__file__).resolve().parents[2] / 'config' if args.bundle else Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config')) / 'hypr'
 replacements = {
     'hyprland.lua': [('bind("SUPER + T", "Toggle floating", hl.dsp.window.float({ action = "toggle" }))',
                       'bind("SUPER + T", "Terminal", hl.dsp.exec_cmd("ghostty"))\nbind("SUPER + SHIFT + T", "Toggle floating", hl.dsp.window.float({ action = "toggle" }))')],
