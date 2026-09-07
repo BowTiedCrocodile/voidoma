@@ -40,16 +40,85 @@ Validated on a **ThinkPad T480** running Void **x86_64 glibc**, Hyprland **0.56.
 or a claim of compatibility with every laptop. Newer Hyprland versions may change
 the Lua API. The configured keyboard layout is US and display scale is 100%.
 
-Start with working graphics, system D-Bus, elogind, and a graphical session.
-Install a compatible Hyprland and hyprland-guiutils separately if they are not
-available from your configured repositories. This bundle does not add repositories
-or compile the compositor. Network controls assume NetworkManager; audio assumes
-PipeWire. Resolve existing network/audio service choices before installing.
+## Prerequisites
 
-References: [Hyprland installation](https://wiki.hypr.land/Getting-Started/Installation/),
-[Void sessions](https://docs.voidlinux.org/config/session-management.html),
-[Void networking](https://docs.voidlinux.org/config/network/index.html),
-[Void PipeWire](https://docs.voidlinux.org/config/media/pipewire.html).
+Complete these steps **before** running the voidoma installer. It configures an
+existing Void system; it does not install the operating system, configure graphics
+drivers, add an XBPS repository, or enable the base system services.
+
+### 1. Base system
+
+- Void Linux **x86_64 glibc**, a normal user account with sudo access, and internet
+  access. Other architectures/libc variants have not been validated here.
+- Working graphics with Wayland support. See [Void graphics setup](https://docs.voidlinux.org/config/graphical-session/graphics-drivers/index.html)
+  for your GPU; the T480 setup was tested with Intel integrated graphics.
+- Git and Python 3 for downloading the repository and running setup scripts.
+- System D-Bus and elogind for session/device access, brightness, locking, and sleep.
+- NetworkManager for the supplied network menu and Wi-Fi key bindings.
+
+Install the base packages if needed:
+
+```sh
+sudo xbps-install -S git python3 dbus elogind NetworkManager
+```
+
+Enable the `dbus` runit service and set up elogind using the
+[Void session-management guide](https://docs.voidlinux.org/config/session-management.html).
+Elogind can be activated through D-Bus; that guide also describes when to enable
+its runit service explicitly. Before enabling NetworkManager, resolve any existing
+network manager such as dhcpcd or a standalone wpa_supplicant service. Follow the
+[Void NetworkManager guide](https://docs.voidlinux.org/config/network/networkmanager.html).
+Installing packages alone does not enable these services.
+
+### 2. Add a separate XBPS source for Hyprland
+
+**Hyprland is not in Void's official repositories.** The setup tested here uses
+[BlackHole](https://www.black-hole.dev/), an unofficial XBPS repository also listed
+in the [Hyprland installation guide](https://wiki.hypr.land/Getting-Started/Installation/).
+Review its current instructions and signing-key information before trusting it.
+Adding it lets XBPS install packages and dependencies maintained outside Void's
+official repositories; voidoma does not operate or automatically add this source.
+
+For the tested **x86_64 glibc** system, add a dedicated repository file. If you
+already configured BlackHole, skip this step rather than adding a duplicate:
+
+```sh
+sudo mkdir -p /etc/xbps.d
+printf '%s\n' 'repository=https://mirror.black-hole.dev/x86_64' | sudo tee /etc/xbps.d/00-repository-blackhole.conf
+sudo xbps-install -S
+```
+
+Check any repository signing-key prompt against the maintainer's published
+information. Then install the compositor and its companion GUI tools:
+
+```sh
+sudo xbps-install hyprland hyprland-guiutils
+Hyprland --version
+command -v start-hyprland hyprland-dialog
+```
+
+The bundle was validated with **Hyprland 0.56.2** and uses Lua configuration.
+An older release using `hyprland.conf` is incompatible; newer releases may require
+adjustments. Repository packages can change, so verify the installed version and
+run `bash tools/check.sh` after installing the desktop dependencies. Users choosing
+to build Hyprland themselves can follow the upstream guide instead of this XBPS path.
+
+### 3. Session and audio choices
+
+The default audio setup uses PipeWire, WirePlumber, and the PulseAudio-compatible
+PipeWire interface. These packages are installed by `setup/install-deps.sh`.
+Resolve an existing standalone PulseAudio setup before starting the desktop; see
+[Void's PipeWire guide](https://docs.voidlinux.org/config/media/pipewire.html).
+
+A display manager is optional: `dbus-run-session start-hyprland` can launch the
+session from a text console. The optional LightDM integration later in this README
+assumes LightDM is already installed and configured. Neither LightDM nor XFCE is
+required for the text-console launch method.
+
+Once the base services and Hyprland are ready, continue below. The dependency
+script installs Ghostty, Waybar, Rofi, Mako, locking/portal tools, and the remaining
+desktop utilities. Fingerprint support has its own optional prerequisites and is
+not part of the base installation.
 
 ## Install
 
