@@ -1,0 +1,46 @@
+#!/bin/bash
+set -eu
+base=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+choose() { rofi -no-config -theme "$base/menu.rasi" -dmenu -i -no-custom -p "$1"; }
+confirm() { [[ $(printf 'Cancel\n%s\n' "$1" | choose Confirm) == "$1" ]]; }
+keys() { choose Shortcuts < "$base/keys.txt" >/dev/null || :; }
+system_menu() {
+    local action
+    action=$(printf 'Back\nLock\nSuspend\nLog out of Hyprland\nRestart\nShut down\n' | choose System) || return 0
+    case "$action" in
+        Lock) exec bash "$base/lock-screen" ;;
+        Suspend) confirm Suspend && loginctl suspend ;;
+        'Log out of Hyprland')
+            if [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]]; then
+                confirm 'Log out' && hyprctl dispatch 'hl.dsp.exit()'
+            fi ;;
+        Restart) confirm Restart && loginctl reboot ;;
+        'Shut down') confirm 'Shut down' && loginctl poweroff ;;
+    esac
+    return 0
+}
+case "${1:-}" in
+    keys) keys; exit ;;
+    system) system_menu; exit ;;
+esac
+while true; do
+    selection=$(printf 'Applications\nTerminal\nBrowser\nFiles\nWi-Fi and network\nAudio\nClipboard history\nClear clipboard history\nScreenshot\nSettings\nDisplays\nBluetooth\nKeyboard shortcuts\nEdit desktop config\nSystem\n' | choose Desktop) || exit 0
+    case "$selection" in
+        Applications) exec rofi -no-config -theme "$base/menu.rasi" -show drun ;;
+        Terminal) exec ghostty ;;
+        Browser) exec firefox ;;
+        Files) exec thunar ;;
+        'Wi-Fi and network') exec nm-connection-editor ;;
+        Audio) exec pavucontrol ;;
+        'Clipboard history') exec bash "$base/clipboard-menu" ;;
+        'Clear clipboard history') exec bash "$base/clipboard-menu" clear ;;
+        Screenshot) exec python3 "$base/screenshot" region ;;
+        Settings) exec python3 "$base/desktop-controls" settings ;;
+        Displays) exec python3 "$base/display-menu" ;;
+        Bluetooth) exec python3 "$base/desktop-controls" bluetooth ;;
+        'Keyboard shortcuts') keys ;;
+        'Edit desktop config') exec xdg-open "$base/hyprland.lua" ;;
+        System) system_menu ;;
+        *) exit 0 ;;
+    esac
+done

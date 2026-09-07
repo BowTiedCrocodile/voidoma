@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+import json
+import subprocess
+
+try:
+    result = subprocess.run(['wpctl', 'get-volume', '@DEFAULT_AUDIO_SINK@'],
+                            capture_output=True, text=True, timeout=2, check=True)
+    muted = '[MUTED]' in result.stdout
+    volume = round(float(result.stdout.split()[1]) * 100)
+    text = 'Muted' if muted else f'VOL {volume}%'
+    tooltip = 'Audio settings · Scroll to change volume'
+except (subprocess.SubprocessError, OSError, ValueError, IndexError):
+    text = 'Audio —'
+    tooltip = 'No PipeWire audio output available'
+print(json.dumps({'text': text, 'tooltip': tooltip}))

@@ -1,0 +1,33 @@
+#!/usr/bin/env python3
+"""Event-driven Waybar state; click commands use Hyprland's Lua API."""
+import json
+import os
+import socket
+import subprocess
+import sys
+
+scratchpad = sys.argv[1] == "scratchpad"
+number = None if scratchpad else int(sys.argv[1])
+sock = socket.socket(socket.AF_UNIX)
+sock.connect(os.path.join(os.environ['XDG_RUNTIME_DIR'], 'hypr',
+                          os.environ['HYPRLAND_INSTANCE_SIGNATURE'], '.socket2.sock'))
+
+def update():
+    if scratchpad:
+        monitors = json.loads(subprocess.check_output(['hyprctl', '-j', 'monitors']))
+        opened = any(m.get('specialWorkspace', {}).get('name') == 'special:scratchpad'
+                     for m in monitors)
+        print(json.dumps({'text': '▣' if opened else '',
+                          'class': 'active' if opened else 'inactive',
+                          'tooltip': 'Scratchpad open · Super + S to hide'}), flush=True)
+        return
+    workspace = json.loads(subprocess.check_output(['hyprctl', '-j', 'activeworkspace']))
+    print(json.dumps({'text': str(number),
+                      'class': 'active' if workspace['id'] == number else 'inactive',
+                      'tooltip': f'Workspace {number} · Super + {number}'}), flush=True)
+
+update()
+with sock.makefile() as events:
+    for event in events:
+        if event.startswith(('workspacev2>>', 'focusedmon>>', 'focusedmonv2>>', 'configreloaded>>', 'activespecial>>', 'activespecialv2>>')):
+            update()

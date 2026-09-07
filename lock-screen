@@ -1,0 +1,5 @@
+#!/bin/bash
+set -eu
+base=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if pgrep -u "$(id -u)" -x hyprlock >/dev/null; then exit 0; fi
+exec hyprlock -c "$base/hyprlock.conf"

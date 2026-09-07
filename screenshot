@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+"""Save a screenshot to Pictures/Screenshots and copy it to the clipboard."""
+import argparse
+import datetime
+import json
+import os
+from pathlib import Path
+import subprocess
+import tempfile
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('mode', choices=('region', 'screen', 'window'))
+args = parser.parse_args()
+os.umask(0o077)
+command = ['grim']
+if args.mode == 'region':
+    result = subprocess.run(['slurp'], text=True, capture_output=True)
+    if result.returncode or not result.stdout.strip():
+        raise SystemExit(0)
+    command += ['-g', result.stdout.strip()]
+elif args.mode == 'window':
+    window = json.loads(subprocess.check_output(['hyprctl', '-j', 'activewindow']))
+    if not window.get('address'):
+        raise SystemExit('No active window to capture.')
+    x, y = window['at']; width, height = window['size']
+    command += ['-g', f'{x},{y} {width}x{height}']
+result = subprocess.run(['xdg-user-dir', 'PICTURES'], capture_output=True, text=True)
+pictures = Path(result.stdout.strip()) if result.returncode == 0 and result.stdout.strip() else Path.home() / 'Pictures'
+directory = pictures / 'Screenshots'
+directory.mkdir(parents=True, exist_ok=True)
+fd, filename = tempfile.mkstemp(prefix=datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S-'), suffix='.png', dir=directory)
+os.close(fd)
+try:
+    subprocess.run(command + [filename], check=True)
+except BaseException:
+    Path(filename).unlink(missing_ok=True)
+    raise
+with open(filename, 'rb') as data:
+    copied = subprocess.run(['wl-copy', '--type', 'image/png'], stdin=data).returncode == 0
+subprocess.run(['notify-send', 'Screenshot saved' + (' and copied' if copied else ''), filename])
+print(filename)

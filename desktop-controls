@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+"""Fn-row menus and wireless controls."""
+import argparse
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+BASE = Path(__file__).resolve().parent
+
+def run(*args):
+    result = subprocess.run(args, text=True, capture_output=True, timeout=15)
+    if result.returncode:
+        raise RuntimeError(result.stderr.strip() or result.stdout.strip() or f'{args[0]} failed')
+    return result.stdout.strip()
+
+def message(text):
+    subprocess.run(['rofi', '-no-config', '-theme', str(BASE / 'menu.rasi'), '-e', text])
+
+def choose(title, options):
+    result = subprocess.run(['rofi', '-no-config', '-theme', str(BASE / 'menu.rasi'),
+                             '-dmenu', '-i', '-no-custom', '-p', title],
+                            input='\n'.join(options), text=True, capture_output=True)
+    return result.stdout.strip() if result.returncode == 0 else ''
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('action', choices=('wifi', 'bluetooth', 'settings'))
+    action = parser.parse_args().action
+    if action == 'wifi':
+        state = run('nmcli', 'radio', 'wifi')
+        target = 'off' if state == 'enabled' else 'on'
+        run('nmcli', 'radio', 'wifi', target)
+        # Notification is optional; toggling does not depend on it.
+        if shutil.which('notify-send'):
+            subprocess.run(['notify-send', '-a', 'Desktop', 'Wi-Fi', f'Turned {target}'])
+    elif action == 'bluetooth':
+        if not shutil.which('blueman-manager'):
+            message('Install bluez and blueman, then enable the bluetoothd service. See README.md.')
+            return
+        os.execvp('blueman-manager', ['blueman-manager'])
+    else:
+        choice = choose('Settings', ['Displays', 'Wi-Fi and network', 'Audio and microphone',
+                                    'Bluetooth', 'Keyboard shortcuts', 'Edit desktop config'])
+        commands = {
+            'Displays': ['python3', str(BASE / 'display-menu')],
+            'Wi-Fi and network': ['nm-connection-editor'],
+            'Audio and microphone': ['pavucontrol'],
+            'Bluetooth': ['python3', str(BASE / 'desktop-controls'), 'bluetooth'],
+            'Keyboard shortcuts': ['bash', str(BASE / 'void-menu'), 'keys'],
+            'Edit desktop config': ['xdg-open', str(BASE / 'hyprland.lua')],
+        }
+        if choice in commands:
+            os.execvp(commands[choice][0], commands[choice])
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (OSError, RuntimeError, subprocess.SubprocessError) as exc:
+        message(str(exc))
+        sys.exit(1)

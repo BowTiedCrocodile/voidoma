@@ -1,0 +1,51 @@
+Super + Space                 Desktop menu
+Super + Alt + Space           Applications
+Super + T / Return            Terminal
+Super + Shift + Return        Browser
+Super + Shift + F             Files
+Super + Arrows                Focus window
+Super + Shift + Arrows        Swap window
+Super + 1–9 / 0               Workspace 1–10
+Super + Shift + 1–9 / 0       Move window to workspace
+Super + J                     Toggle split direction
+Super + Shift + T             Toggle floating
+Super + F                     Fullscreen
+Super + P                     Pseudo tiling
+Super + W / Q                 Close window
+Super + G                     Toggle window group
+Super + Ctrl + Left / Right   Previous / next grouped window
+Super + S / Grave             Scratchpad
+Super + Alt + S               Move window to scratchpad
+Super + Shift + Grave         Move window to scratchpad
+Super + Left mouse drag       Move window
+Super + Right mouse drag      Resize window
+Super + K                     Keyboard shortcuts
+Super + Escape                System menu
+
+Brightness keys: adjust screen brightness
+Volume keys: volume and mute
+Microphone mute: toggle microphone
+Media keys: play/pause, next, previous
+
+F7 display icon: display layout menu
+F8 wireless icon: toggle Wi-Fi
+F9 gear: desktop settings
+F10 Bluetooth icon: Bluetooth controls
+F12 star: desktop menu
+F11: unassigned pending key identification
+
+Super + L: Lock screen
+Print: Screenshot region
+Shift + Print: Screenshot all displays
+Super + Print: Screenshot active window
+Super + V: Clipboard history
+
+Touchpad gestures
+One-finger tap                Left click
+Two-finger tap / press        Right click
+Two-finger scroll             Natural scrolling
+Pinch                         Application zoom where supported
+Three-finger left / right     Switch numbered workspace
+Three-finger up               Applications
+Three-finger down             Toggle scratchpad
+Four-finger up                Toggle fullscreen

@@ -1,0 +1,11 @@
+#!/bin/bash
+set -euo pipefail
+base=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if [ "${1:-}" = clear ]; then
+    choice=$(printf 'Cancel\nClear history\n' | rofi -no-config -theme "$base/menu.rasi" -dmenu -no-custom -p Clipboard) || exit 0
+    if [ "$choice" = 'Clear history' ]; then cliphist wipe; fi
+    exit 0
+fi
+selection=$(cliphist list | rofi -no-config -theme "$base/menu.rasi" -dmenu -i -no-custom -p Clipboard) || exit 0
+[ -n "$selection" ] || exit 0
+printf '%s\n' "$selection" | cliphist decode | wl-copy

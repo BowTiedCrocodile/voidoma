@@ -1,0 +1,15 @@
+* {
+    font: "DejaVu Sans Mono 12";
+    background-color: transparent;
+    text-color: #d3c6aa;
+}
+window { width: 580px; background-color: #202824f5; border: 2px; border-color: #a7c080; border-radius: 14px; }
+mainbox { padding: 22px; spacing: 16px; }
+inputbar { padding: 12px; spacing: 12px; background-color: #2d3932; border-radius: 8px; }
+prompt { text-color: #a7c080; }
+entry { placeholder: "Type to search…"; }
+listview { lines: 10; fixed-height: false; spacing: 5px; }
+element { padding: 10px 12px; border-radius: 7px; spacing: 12px; }
+element selected.normal { background-color: #a7c080; text-color: #202824; }
+element-text { background-color: inherit; text-color: inherit; }
+element-icon { size: 24px; }

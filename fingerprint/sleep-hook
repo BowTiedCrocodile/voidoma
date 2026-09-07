@@ -1,0 +1,19 @@
+#!/bin/sh
+# Keep the manager available for waiting lock-screen clients; cycle the USB driver.
+[ -e /var/service/void-python-validity ] || exit 0
+umask 077
+exec >>/var/log/void-fingerprint-sleep.log 2>&1
+printf '\n%s phase=%s action=%s\n' "$(date -Iseconds)" "$1" "$2"
+export PYTHONPATH=/opt/void-fingerprint/open-fprintd
+case "$1" in
+ pre)
+    timeout 8 python3 /opt/void-fingerprint/open-fprintd/scripts/suspend.py
+    printf 'Suspend call status=%s\n' "$?"
+    sv -w 15 down /var/service/void-python-validity
+    ;;
+ post)
+    # up permits runit to retry if USB re-enumeration is still in progress.
+    # The down file remains, so this does not enable startup on future boots.
+    sv up /var/service/void-python-validity
+    ;;
+esac

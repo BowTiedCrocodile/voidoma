@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+"""Temporary display presets with a confirmation timeout and rollback."""
+import argparse
+import fcntl
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+BASE = Path(__file__).resolve().parent
+
+def monitors():
+    return json.loads(subprocess.check_output(['hyprctl', '-j', 'monitors', 'all'], text=True, timeout=5))
+
+def lua(value):
+    if isinstance(value, bool):
+        return 'true' if value else 'false'
+    if isinstance(value, (int, float)):
+        return str(value)
+    # Output names and positions are ASCII; JSON quoting is valid Lua here.
+    return json.dumps(value, ensure_ascii=False)
+
+def apply(specs):
+    code = '; '.join('hl.monitor({' + ', '.join(k + '=' + lua(v) for k, v in s.items()) + '})' for s in specs)
+    result = subprocess.run(['hyprctl', 'eval', code], text=True, capture_output=True, timeout=10)
+    if result.returncode or result.stdout.strip() != 'ok':
+        raise RuntimeError(result.stderr or result.stdout or 'Display configuration failed')
+
+def snapshot(items):
+    names = {m['id']: m['name'] for m in items}
+    specs = []
+    for m in items:
+        spec = {'output': m['name'], 'disabled': m.get('disabled', False)}
+        if not spec['disabled']:
+            mirror = m.get('mirrorOf', 'none')
+            spec.update(mode=f"{m['width']}x{m['height']}@{m['refreshRate']:.3f}",
+                        position=f"{m['x']}x{m['y']}", scale=m['scale'],
+                        transform=m.get('transform', 0),
+                        mirror=names.get(mirror, '') if isinstance(mirror, int) else ('' if mirror == 'none' else mirror))
+        specs.append(spec)
+    # Enable independent outputs before mirrors; disable unwanted outputs last.
+    return sorted(specs, key=lambda s: (s['disabled'], bool(s.get('mirror'))))
+
+def preset(items, mode, external=None):
+    internal = next((m for m in items if m['name'].startswith(('eDP-', 'LVDS-', 'DSI-'))), None)
+    if internal is None:
+        raise ValueError('These laptop presets require an internal display.')
+    ext = next((m for m in items if m['name'] == external and m != internal), None)
+    if mode != 'Laptop only' and ext is None:
+        raise ValueError('Connect an external display first.')
+    def enabled(m, mirror=''):
+        return {'output': m['name'], 'disabled': False, 'mode': 'preferred',
+                'position': 'auto', 'scale': m.get('scale') or 1, 'transform': 0, 'mirror': mirror}
+    if mode == 'External only':
+        specs = [enabled(ext)]
+    else:
+        specs = [enabled(internal)]
+        if mode in ('Extend', 'Mirror'):
+            specs.append(enabled(ext, internal['name'] if mode == 'Mirror' else ''))
+    active = {s['output'] for s in specs}
+    specs.extend({'output': m['name'], 'disabled': True} for m in items if m['name'] not in active)
+    return specs
+
+def choose(title, choices, timeout=None):
+    result = subprocess.run(['rofi', '-no-config', '-theme', str(BASE / 'menu.rasi'),
+                             '-dmenu', '-no-custom', '-p', title], input='\n'.join(choices),
+                            text=True, capture_output=True, timeout=timeout)
+    return result.stdout.strip() if result.returncode == 0 else ''
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--list', action='store_true', help='print connected displays without changing them')
+    args = parser.parse_args()
+    items = monitors()
+    if args.list:
+        print(json.dumps(items, indent=2))
+        return
+    with open(Path(os.environ['XDG_RUNTIME_DIR']) / 'void-display-menu.lock', 'w') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return
+        choice = choose('Display mode', ['Laptop only', 'Extend', 'Mirror', 'External only'])
+        if not choice:
+            return
+        external = None
+        if choice != 'Laptop only':
+            names = [m['name'] for m in items if not m['name'].startswith(('eDP-', 'LVDS-', 'DSI-'))]
+            if not names:
+                raise ValueError('No external display connected.')
+            external = names[0] if len(names) == 1 else choose('External display', names)
+            if not external:
+                return
+        desired = preset(items, choice, external)
+        previous = snapshot(items)
+        keep = False
+        try:
+            apply(desired)
+            keep = choose('Keep layout? Reverts in 15s', ['Revert', 'Keep'], timeout=15) == 'Keep'
+        except subprocess.TimeoutExpired:
+            pass
+        finally:
+            if not keep:
+                try:
+                    apply(previous)
+                except Exception:
+                    # A monitor may have been unplugged during confirmation.
+                    internal = next((m for m in items if m['name'].startswith(('eDP-', 'LVDS-', 'DSI-'))), None)
+                    if internal:
+                        apply([{'output': internal['name'], 'disabled': False, 'mode': 'preferred',
+                                'position': '0x0', 'scale': 1, 'mirror': ''}])
+                    raise
+
+if __name__ == '__main__':
+    try:
+        main()
+    except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
+        subprocess.run(['rofi', '-no-config', '-theme', str(BASE / 'menu.rasi'), '-e', str(exc)])
+        sys.exit(1)

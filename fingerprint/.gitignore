@@ -1,0 +1,5 @@
+sources/
+build/
+__pycache__/
+*.pyc
+firmware/

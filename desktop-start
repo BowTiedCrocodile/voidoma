@@ -1,0 +1,41 @@
+#!/bin/bash
+set -eu
+umask 077
+base=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+logs="${XDG_RUNTIME_DIR:?}/void-desktop"
+mkdir -p "$logs"
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+# D-Bus activated portals must inherit the compositor environment.
+dbus-update-activation-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE XDG_CONFIG_HOME
+
+# Void's /etc/pipewire drop-ins launch WirePlumber and the Pulse interface.
+# Check the current runtime socket, since a previous session can leave processes.
+if [ ! -S "$XDG_RUNTIME_DIR/pipewire-0" ]; then
+    pipewire >"$logs/audio.log" 2>&1 &
+fi
+if ! pgrep -u "$(id -u)" -x swaybg >/dev/null; then
+    swaybg -i "$base/wallpaper.png" -m fill >"$logs/wallpaper.log" 2>&1 &
+fi
+if ! pgrep -u "$(id -u)" -x waybar >/dev/null; then
+    waybar -c "$base/waybar.json" -s "$base/waybar.css" >"$logs/waybar.log" 2>&1 &
+fi
+if ! pgrep -u "$(id -u)" -x mako >/dev/null; then
+    mako -c "$base/mako.conf" >"$logs/notifications.log" 2>&1 &
+fi
+
+# Enable automatic locking only after a successful manual unlock test.
+if [ -f "$base/idle-enabled" ] && command -v hypridle >/dev/null && ! pgrep -u "$(id -u)" -x hypridle >/dev/null; then
+    hypridle -c "$base/hypridle.conf" >"$logs/idle.log" 2>&1 &
+fi
+# Keep separate text/image watchers, but only one pair per runtime directory.
+if command -v cliphist >/dev/null && command -v wl-paste >/dev/null; then
+    (
+        flock -n 9 || exit 0
+        wl-paste --type text --watch cliphist store &
+        text_pid=$!
+        wl-paste --type image --watch cliphist store &
+        image_pid=$!
+        trap 'kill "$text_pid" "$image_pid" 2>/dev/null || :' EXIT
+        wait
+    ) 9>"$logs/clipboard.lock" >"$logs/clipboard.log" 2>&1 &
+fi

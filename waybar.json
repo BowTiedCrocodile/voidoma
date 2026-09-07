@@ -1,0 +1,117 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 36,
+  "margin-top": 8,
+  "margin-left": 12,
+  "margin-right": 12,
+  "spacing": 4,
+  "modules-left": [
+    "custom/menu",
+    "custom/ws1",
+    "custom/ws2",
+    "custom/ws3",
+    "custom/ws4",
+    "custom/ws5",
+    "custom/scratchpad"
+  ],
+  "modules-center": [
+    "clock"
+  ],
+  "modules-right": [
+    "tray",
+    "network",
+    "custom/audio",
+    "battery",
+    "custom/power"
+  ],
+  "custom/menu": {
+    "format": "\u25cf  VOID",
+    "tooltip-format": "Desktop menu \u00b7 Super + Space",
+    "on-click": "bash \"${XDG_CONFIG_HOME:-$HOME/.config}/hypr/void-menu\""
+  },
+  "clock": {
+    "format": "{:%a  %d %b   \u00b7   %H:%M}",
+    "tooltip-format": "{:%A, %B %d, %Y}"
+  },
+  "network": {
+    "format-wifi": "Wi-Fi {signalStrength}%",
+    "format-ethernet": "Ethernet",
+    "format-disconnected": "Offline",
+    "tooltip-format": "{ifname} \u00b7 {ipaddr}",
+    "on-click": "nm-connection-editor",
+    "max-length": 18
+  },
+  "battery": {
+    "format": "BAT {capacity}%",
+    "format-charging": "CHG {capacity}%",
+    "format-full": "FULL {capacity}%",
+    "states": {
+      "warning": 25,
+      "critical": 10
+    },
+    "weighted-average": true,
+    "interval": 5,
+    "format-plugged": "AC {capacity}%",
+    "tooltip-format": "{capacity}% \u00b7 {timeTo}\nBattery power: {power:.1f} W"
+  },
+  "tray": {
+    "icon-size": 16,
+    "spacing": 8
+  },
+  "custom/power": {
+    "format": "\u23fb",
+    "tooltip-format": "System menu",
+    "on-click": "bash \"${XDG_CONFIG_HOME:-$HOME/.config}/hypr/void-menu\" system"
+  },
+  "custom/ws1": {
+    "exec": "python3 \"${XDG_CONFIG_HOME:-$HOME/.config}/hypr/workspace-status\" 1",
+    "return-type": "json",
+    "restart-interval": 3,
+    "on-click": "hyprctl dispatch 'hl.dsp.focus({workspace=1})'",
+    "tooltip": true
+  },
+  "custom/ws2": {
+    "exec": "python3 \"${XDG_CONFIG_HOME:-$HOME/.config}/hypr/workspace-status\" 2",
+    "return-type": "json",
+    "restart-interval": 3,
+    "on-click": "hyprctl dispatch 'hl.dsp.focus({workspace=2})'",
+    "tooltip": true
+  },
+  "custom/ws3": {
+    "exec": "python3 \"${XDG_CONFIG_HOME:-$HOME/.config}/hypr/workspace-status\" 3",
+    "return-type": "json",
+    "restart-interval": 3,
+    "on-click": "hyprctl dispatch 'hl.dsp.focus({workspace=3})'",
+    "tooltip": true
+  },
+  "custom/ws4": {
+    "exec": "python3 \"${XDG_CONFIG_HOME:-$HOME/.config}/hypr/workspace-status\" 4",
+    "return-type": "json",
+    "restart-interval": 3,
+    "on-click": "hyprctl dispatch 'hl.dsp.focus({workspace=4})'",
+    "tooltip": true
+  },
+  "custom/ws5": {
+    "exec": "python3 \"${XDG_CONFIG_HOME:-$HOME/.config}/hypr/workspace-status\" 5",
+    "return-type": "json",
+    "restart-interval": 3,
+    "on-click": "hyprctl dispatch 'hl.dsp.focus({workspace=5})'",
+    "tooltip": true
+  },
+  "custom/audio": {
+    "exec": "python3 \"${XDG_CONFIG_HOME:-$HOME/.config}/hypr/audio-status\"",
+    "return-type": "json",
+    "interval": 5,
+    "on-click": "pavucontrol",
+    "on-scroll-up": "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+",
+    "on-scroll-down": "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
+  },
+  "custom/scratchpad": {
+    "exec": "python3 \"${XDG_CONFIG_HOME:-$HOME/.config}/hypr/workspace-status\" scratchpad",
+    "return-type": "json",
+    "restart-interval": 3,
+    "tooltip": true,
+    "on-click": "hyprctl dispatch 'hl.dsp.workspace.toggle_special(\"scratchpad\")'"
+  }
+}

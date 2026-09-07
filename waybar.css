@@ -1,0 +1,16 @@
+* { font-family: "DejaVu Sans Mono", "DejaVu Sans", sans-serif; font-size: 12px; min-height: 0; border: none; }
+window#waybar { background: rgba(25, 34, 30, 0.96); color: #d3c6aa; border: 1px solid #39463f; border-radius: 12px; }
+tooltip { background: #202824; border: 1px solid #a7c080; border-radius: 8px; }
+#custom-menu { color: #a7c080; font-weight: bold; padding: 0 16px; }
+#custom-ws1, #custom-ws2, #custom-ws3, #custom-ws4, #custom-ws5 { padding: 0 11px; margin: 5px 1px; border-radius: 6px; color: #859289; }
+#custom-ws1.active, #custom-ws2.active, #custom-ws3.active, #custom-ws4.active, #custom-ws5.active { background: #a7c080; color: #19221e; }
+#clock { color: #d3c6aa; padding: 0 12px; }
+#network, #custom-audio, #battery, #tray { padding: 0 10px; }
+#network { color: #7fbbb3; }
+#custom-audio { color: #d3c6aa; }
+#battery { color: #a7c080; }
+#battery.warning { color: #dbbc7f; }
+#battery.critical { color: #e67e80; }
+#custom-power { color: #a7c080; font-size: 17px; padding: 0 16px 0 10px; }
+
+#custom-scratchpad { color: #a7c080; padding: 0 9px; font-size: 17px; }
